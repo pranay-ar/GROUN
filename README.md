@@ -1,5 +1,3 @@
-Initial
-
 ## GROUN - Get Rid of Your Notes
 
 GROUN is an application which can be used to delete the spam related to lecture slides/notes present in our mobile devices. It currently predicts the image to be a lecture slide or not with a validation accuracy of 91 percent.
