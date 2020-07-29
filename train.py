@@ -6,7 +6,7 @@ import argparse
 import numpy as np
 import matplotlib.pyplot as plt
 from imutils import paths
-from pyimagesearch.lenet import LeNet
+from model.lenet import LeNet
 from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.preprocessing.image import img_to_array
 from sklearn.model_selection import train_test_split
@@ -93,7 +93,7 @@ plt.plot(np.arange(0, N), H.history["loss"], label="train_loss")
 plt.plot(np.arange(0, N), H.history["val_loss"], label="val_loss")
 plt.plot(np.arange(0, N), H.history["accuracy"], label="train_acc")
 plt.plot(np.arange(0, N), H.history["val_accuracy"], label="val_acc")
-plt.title("Training Loss and Accuracy on Santa/Not Santa")
+plt.title("Training Loss and Accuracy on Slides/Not Slides")
 plt.xlabel("Epoch #")
 plt.ylabel("Loss/Accuracy")
 plt.legend(loc="lower left")
