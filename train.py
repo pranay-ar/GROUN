@@ -1,4 +1,4 @@
-# set the matplotlib backend so figures can be saved in the background
+#First, we import all the necessary dependancies that might be useful in training the project
 import os
 import cv2
 import random
@@ -6,6 +6,7 @@ import argparse
 import numpy as np
 import matplotlib.pyplot as plt
 from imutils import paths
+from model.vgg16 import VGG16
 from model.lenet import LeNet
 from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.preprocessing.image import img_to_array
@@ -14,78 +15,79 @@ from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 import matplotlib
 matplotlib.use("Agg")
-# import the necessary packages
 
-# construct the argument parser and parse the arguments
+#Now, we are creating the command line arguments so as to pass the inputs to train the model
 ap = argparse.ArgumentParser()
 ap.add_argument("-d", "--dataset", required=True,
-                help="path to input dataset")
+                help="type the path to input dataset")
 ap.add_argument("-m", "--model", required=True,
-                help="path to output model")
+                help="type the path to output model")
 ap.add_argument("-p", "--plot", type=str, default="plot.png",
-                help="path to output loss/accuracy plot")
+                help="type the path to output loss/accuracy plot")
 args = vars(ap.parse_args())
 
-# initialize the number of epochs to train for, initia learning rate,
-# and batch size
+#Thirdly, we are initialising hte number of epoches, learning rate and the batch size for training
 EPOCHS = 25
 INIT_LR = 1e-3
-BS = 32
-# initialize the data and labels
-print("[INFO] loading images...")
+BS = 64
+
+#Now, we are creating an empty list of data and labels to initialise them
+print("[UPDATE]: The images are being loaded.")
 data = []
 labels = []
-# grab the image paths and randomly shuffle them
+
+#Now, we pull in the image path and randomly shuffle them
 imagePaths = sorted(list(paths.list_images(args["dataset"])))
 random.seed(42)
 random.shuffle(imagePaths)
 
-# loop over the input images
+#Now, we loop over all the images that we have been provided
 for imagePath in imagePaths:
-    # load the image, pre-process it, and store it in the data list
+    #Now, we load the image, pre-process it, and append it to the data list
     image = cv2.imread(imagePath)
-    image = cv2.resize(image, (28, 28))
+    image = cv2.resize(image, (227, 227))
     image = img_to_array(image)
     data.append(image)
-    # extract the class label from the image path and update the
-    # labels list
+    #Now, we extract the class label from the image path and update the labels list
     label = imagePath.split(os.path.sep)[-2]
     label = 1 if label == "slides" else 0
     labels.append(label)
 
-# scale the raw pixel intensities to the range [0, 1]
+#Now, we scale the raw pixel intensities to the range [0, 1]
 data = np.array(data, dtype="float") / 255.0
 labels = np.array(labels)
-# partition the data into training and testing splits using 75% of
-# the data for training and the remaining 25% for testing
+
+#Now, we perform the train_test data split by allocating 75% for training the data and the remaining 25% for testing the data partition the data
 (trainX, testX, trainY, testY) = train_test_split(data,
                                                   labels, test_size=0.25, random_state=42)
-# convert the labels from integers to vectors
+
+#Now, we convert the datatype of labels to  vectors from originally being integers                                                  
 trainY = to_categorical(trainY, num_classes=2)
 testY = to_categorical(testY, num_classes=2)
 
-# construct the image generator for data augmentation
+#Now, we construct the image generator to perform data augmentation
 aug = ImageDataGenerator(rotation_range=30, width_shift_range=0.1,
                          height_shift_range=0.1, shear_range=0.2, zoom_range=0.2,
                          horizontal_flip=True, fill_mode="nearest")
 
-# initialize the model
-print("[INFO] compiling model...")
+#After preprocessing the data, now we bring in the model to train it with the data
+print("[UPDATE]: We are now compiling the model.")
 model = LeNet.build(width=28, height=28, depth=3, classes=2)
 opt = Adam(lr=INIT_LR, decay=INIT_LR / EPOCHS)
 model.compile(loss="binary_crossentropy", optimizer=opt,
               metrics=["accuracy"])
-# train the network
-print("[INFO] training network...")
+#Now that compiling the model is done, we will now train the data
+print("[UPDATE]: We are now training the model.")
 H = model.fit(x=aug.flow(trainX, trainY, batch_size=BS),
               validation_data=(testX, testY), steps_per_epoch=len(
                   trainX) // BS,
               epochs=EPOCHS, verbose=1)
-# save the model to disk
-print("[INFO] serializing network...")
+
+#Now that the training is done, we will save the model to the same directory
+print("[UPDATE]: Training is done. We are serialising the network.")
 model.save(args["model"], save_format="h5")
 
-# plot the training loss and accuracy
+# We are now trying to visualise the performance of the model using matplotlib
 plt.style.use("ggplot")
 plt.figure()
 N = EPOCHS
